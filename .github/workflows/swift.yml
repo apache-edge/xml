@@ -1,4 +1,4 @@
-name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
+name: Swift Tests
 
 on:
   push:
