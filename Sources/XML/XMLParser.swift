@@ -1,4 +1,8 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A simple XML parser that creates an XMLDocument from a string
 public final class XMLParser {

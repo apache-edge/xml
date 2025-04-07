@@ -1,6 +1,50 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
-/// Provides XPath-like query functionality for XML elements
+/// Provides XPath-like query functionality for XML elements.
+///
+/// The `XMLQuery` engine enables searching XML documents using a simplified XPath-like syntax,
+/// making it easy to find elements by name, attribute, or position in the document tree.
+///
+/// ## Query Syntax
+///
+/// The query syntax supports the following features:
+///
+/// - **Element selection**: Use element names to select children (`book`)
+/// - **Path navigation**: Use slashes to navigate the tree (`library/book/title`)
+/// - **Attribute filters**: Use square brackets to filter by attributes (`book[@category='fiction']`)
+/// - **Wildcards**: Use asterisk to match any element (`*/title`)
+/// - **Parent navigation**: Use double dots to navigate to parent elements (`title/..`)
+/// - **Indexing**: Use numeric indices to select specific elements (`book[1]`)
+///
+/// ## Examples
+///
+/// ```swift
+/// // Find all book elements
+/// let books = document.root.query("book")
+///
+/// // Find books with a specific attribute
+/// let fictionBooks = document.root.query("book[@category='fiction']")
+///
+/// // Find the title of the first book
+/// let firstBookTitle = document.root.query("book[1]/title").first
+///
+/// // Find all titles, regardless of parent element
+/// let allTitles = document.root.query("*/title")
+///
+/// // Find elements with a specific text content
+/// let specificBooks = document.root.query("book/title[text()='The Swift Programming Language']")
+///     .flatMap { $0.parent != nil ? [$0.parent!] : [] }
+/// ```
+///
+/// ## Implementation Notes
+///
+/// The query engine processes path segments individually, building up sets of matching elements.
+/// It's not a full XPath implementation but provides the most commonly used features for XML
+/// document traversal and querying.
 public enum XMLQuery {
     /// Executes a query on an element
     /// - Parameters:

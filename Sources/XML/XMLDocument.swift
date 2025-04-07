@@ -1,6 +1,68 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
-/// Represents an XML document with a root element
+/// Represents a complete XML document with a root element, declaration, and optional metadata.
+///
+/// `XMLDocument` is the top-level container for XML content, managing the root element and
+/// document-level constructs like XML declarations, processing instructions, and comments.
+///
+/// ## Creating Documents
+///
+/// You can create documents by parsing XML strings or files, or by programmatically
+/// constructing them:
+///
+/// ```swift
+/// // Parse from string
+/// let document = try XML.parse(string: xmlString)
+///
+/// // Parse from file
+/// let document = try XML.parse(contentsOfFile: "document.xml")
+///
+/// // Create programmatically
+/// let root = XMLElement(name: "root")
+/// let document = XMLDocument(root: root)
+/// ```
+///
+/// ## Document Properties
+///
+/// A document has several key properties:
+///
+/// - A root element that contains all document content
+/// - XML version and encoding information
+/// - Optional declaration, processing instructions, and comments
+///
+/// ## Accessing and Modifying Content
+///
+/// Most document operations involve working with the root element:
+///
+/// ```swift
+/// // Access the root element
+/// let rootElement = document.root
+///
+/// // Query elements in the document
+/// let elements = document.root.query("book/title")
+///
+/// // Add content to the document
+/// document.root.addChild(XMLElement(name: "section"))
+/// ```
+///
+/// ## Serialization
+///
+/// Documents can be serialized to XML strings with optional pretty formatting:
+///
+/// ```swift
+/// // Get XML as a compact string
+/// let xmlString = document.xmlString
+///
+/// // Get XML with pretty formatting
+/// let prettyXml = document.xmlStringFormatted(pretty: true)
+///
+/// // Write to file
+/// try document.write(toFile: "output.xml", pretty: true)
+/// ```
 public final class XMLDocument {
     /// The XML version
     public let version: String
@@ -58,6 +120,13 @@ public final class XMLDocument {
     
     /// The XML string representation of this document
     public var xmlString: String {
+        xmlStringFormatted(pretty: false)
+    }
+    
+    /// Returns the XML string representation of this document with optional pretty formatting
+    /// - Parameter pretty: Whether to format the XML with indentation and line breaks
+    /// - Returns: The XML string
+    public func xmlStringFormatted(pretty: Bool = false) -> String {
         var result = ""
         
         // Add XML declaration
@@ -76,9 +145,68 @@ public final class XMLDocument {
         }
         
         // Add root element
-        result += root.xmlString
+        result += pretty ? formatXML(root, level: 0) : root.xmlString
         
         return result
+    }
+    
+    /// Formats an XML node with proper indentation
+    /// - Parameters:
+    ///   - node: The node to format
+    ///   - level: The current indentation level
+    /// - Returns: The formatted XML string
+    private func formatXML(_ node: XMLNode, level: Int) -> String {
+        let indent = String(repeating: "    ", count: level)
+        
+        if let element = node as? XMLElement {
+            var result = "\(indent)<\(element.name)"
+            
+            // Add attributes
+            for (key, value) in element.attributes.sorted(by: { $0.key < $1.key }) {
+                let escapedValue = value.replacingOccurrences(of: "\"", with: "&quot;")
+                result += " \(key)=\"\(escapedValue)\""
+            }
+            
+            // Check if we have children or content
+            if element.children.isEmpty && element.content == nil {
+                result += " />\n"
+            } else {
+                result += ">"
+                
+                // Check if we have only text content
+                let hasNonTextChildren = element.children.contains { !($0 is XMLText) }
+                
+                if !hasNonTextChildren {
+                    // If we only have text, keep it on the same line
+                    for child in element.children {
+                        result += child.xmlString
+                    }
+                    result += "</\(element.name)>\n"
+                } else {
+                    // If we have structured content, format it with indentation
+                    result += "\n"
+                    
+                    for child in element.children {
+                        result += formatXML(child, level: level + 1)
+                    }
+                    
+                    result += "\(indent)</\(element.name)>\n"
+                }
+            }
+            
+            return result
+        } else if let comment = node as? XMLComment {
+            return "\(indent)\(comment.xmlString)\n"
+        } else if let cdata = node as? XMLCData {
+            return "\(indent)\(cdata.xmlString)\n"
+        } else if let pi = node as? XMLProcessingInstruction {
+            return "\(indent)\(pi.xmlString)\n"
+        } else if let text = node as? XMLText {
+            // Text nodes don't need indentation
+            return text.xmlString
+        }
+        
+        return ""
     }
     
     /// Creates a deep copy of this document
@@ -135,18 +263,22 @@ extension XMLDocument {
 // MARK: - Writing
 extension XMLDocument {
     /// Writes the XML to a file
-    /// - Parameter url: The URL to write to
+    /// - Parameters:
+    ///   - url: The URL to write to
+    ///   - pretty: Whether to format the XML with indentation and line breaks
     /// - Throws: Error if writing fails
-    public func write(to url: URL) throws {
-        let data = xmlString.data(using: .utf8)!
+    public func write(to url: URL, pretty: Bool = false) throws {
+        let data = xmlStringFormatted(pretty: pretty).data(using: .utf8)!
         try data.write(to: url)
     }
     
     /// Writes the XML to a file path
-    /// - Parameter path: The path to write to
+    /// - Parameters:
+    ///   - path: The path to write to
+    ///   - pretty: Whether to format the XML with indentation and line breaks
     /// - Throws: Error if writing fails
-    public func write(toFile path: String) throws {
+    public func write(toFile path: String, pretty: Bool = false) throws {
         let url = URL(fileURLWithPath: path)
-        try write(to: url)
+        try write(to: url, pretty: pretty)
     }
 }

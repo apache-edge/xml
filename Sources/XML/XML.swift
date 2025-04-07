@@ -1,11 +1,109 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
-/// Swift XML library for parsing, querying, traversing, and mutating XML documents
+/// A comprehensive Swift 6 XML library for parsing, querying, traversing, and mutating XML documents.
+///
+/// The XML library provides a complete toolkit for working with XML in Swift, offering an
+/// intuitive API that makes common XML operations simple while supporting advanced features.
+///
+/// ## Overview
+///
+/// The library is structured around a protocol-based design with `XMLNode` as the base protocol
+/// and specific implementations for different node types:
+///
+/// - ``XMLElement``: Represents an XML element with attributes and child nodes
+/// - ``XMLText``: Represents text content within an element
+/// - ``XMLComment``: Represents XML comments
+/// - ``XMLCData``: Represents CDATA sections
+/// - ``XMLProcessingInstruction``: Represents XML processing instructions
+/// - ``XMLDocument``: Represents a complete XML document
+///
+/// ## Common Tasks
+///
+/// ### Parsing XML
+///
+/// ```swift
+/// // Parse from string
+/// let document = try XML.parse(string: xmlString)
+///
+/// // Parse from file
+/// let document = try XML.parse(contentsOfFile: "document.xml")
+/// ```
+///
+/// ### Querying XML
+///
+/// ```swift
+/// // Find all book elements
+/// let books = document.root.query("book")
+///
+/// // Find books with a specific attribute
+/// let fictionBooks = document.root.query("book[@category='fiction']")
+///
+/// // Find elements by path
+/// let titles = document.root.query("book/title")
+/// ```
+///
+/// ### Building XML
+///
+/// ```swift
+/// let builder = XML.build(root: "library")
+///     .element(name: "book", attributes: ["category": "fiction"])
+///         .element(name: "title", content: "The Hitchhiker's Guide to the Galaxy")
+///         .parent()
+///         .element(name: "author", content: "Douglas Adams")
+///         .parent()
+///     .parent()
+///
+/// let document = builder.xmlDocument
+/// ```
+///
+/// ### Modifying XML
+///
+/// ```swift
+/// // Add a new element
+/// let newElement = XML.element(name: "chapter", content: "Introduction")
+/// book.addChild(newElement)
+///
+/// // Change content
+/// element.setContent("New content")
+///
+/// // Update an attribute
+/// element.setAttribute("status", value: "published")
+/// ```
+///
 public enum XML {
-    /// Creates a new XML document from a string
-    /// - Parameter string: The XML string to parse
-    /// - Returns: The parsed XML document
-    /// - Throws: XMLParseError if parsing fails
+    /// Creates a new XML document from a string.
+    ///
+    /// This method parses an XML string into a structured document object model.
+    ///
+    /// - Parameter string: The XML string to parse. This should be a well-formed XML document.
+    /// - Returns: A new ``XMLDocument`` instance containing the parsed document structure.
+    /// - Throws: ``XMLParseError`` if the XML is malformed or contains invalid content.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let xmlString = """
+    /// <?xml version="1.0" encoding="UTF-8"?>
+    /// <library>
+    ///   <book category="fiction">
+    ///     <title>The Hitchhiker's Guide to the Galaxy</title>
+    ///     <author>Douglas Adams</author>
+    ///   </book>
+    /// </library>
+    /// """
+    ///
+    /// do {
+    ///     let document = try XML.parse(string: xmlString)
+    ///     let title = document.root.query("book/title").first?.textContent
+    ///     print("Title: \(title ?? "Not found")")
+    /// } catch {
+    ///     print("Failed to parse XML: \(error)")
+    /// }
+    /// ```
     public static func parse(string: String) throws -> XMLDocument {
         return try XMLDocument.parse(string: string)
     }

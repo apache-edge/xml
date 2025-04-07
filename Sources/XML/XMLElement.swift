@@ -1,6 +1,78 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
-/// Represents an XML element with a name, attributes, and child nodes
+/// Represents an XML element with a name, attributes, and child nodes.
+///
+/// `XMLElement` is the primary building block of XML documents, modeling elements like
+/// `<book title="Example">Content</book>`. Each element can have attributes, text content,
+/// and child nodes of various types.
+///
+/// ## Creating Elements
+///
+/// You can create elements directly or using the factory methods in the ``XML`` enum:
+///
+/// ```swift
+/// // Create directly
+/// let element = XMLElement(name: "book", attributes: ["title": "Example"])
+///
+/// // Create using the factory method
+/// let element = XML.element(name: "book", attributes: ["title": "Example"])
+/// ```
+///
+/// ## Element Attributes
+///
+/// Attributes can be accessed and modified using subscripts or dedicated methods:
+///
+/// ```swift
+/// // Using dynamic member lookup
+/// element.title = "New Title"
+/// let title = element.title
+///
+/// // Using attribute methods
+/// element.setAttribute("title", value: "New Title")
+/// let title = element.attributes["title"]
+/// ```
+///
+/// ## Child Management
+///
+/// Elements can have child nodes of different types. The library provides methods
+/// to add, remove, and query child nodes:
+///
+/// ```swift
+/// // Add a child element
+/// let child = XML.element(name: "chapter")
+/// element.addChild(child)
+///
+/// // Remove a child
+/// element.removeChild(child)
+///
+/// // Add text content
+/// element.addChild(XML.text("Content"))
+///
+/// // Clear all children
+/// element.removeAllChildren()
+/// ```
+///
+/// ## Navigation and Querying
+///
+/// `XMLElement` provides methods for navigating the XML tree and querying elements:
+///
+/// ```swift
+/// // Find all child elements with a specific name
+/// let chapters = book.children(where: { $0.name == "chapter" })
+///
+/// // Find first child with specific criteria
+/// let firstChapter = book.firstChild(where: { $0.attributes["number"] == "1" })
+///
+/// // Find all descendants matching criteria
+/// let allParagraphs = book.descendants(where: { $0.name == "paragraph" })
+///
+/// // Use XPath-like queries
+/// let titles = book.query("chapter/title")
+/// ```
 @dynamicMemberLookup
 public final class XMLElement: XMLNode, Hashable {
     /// The name of the element
@@ -28,6 +100,11 @@ public final class XMLElement: XMLNode, Hashable {
         self.attributes = attributes
         self.children = []
         self.content = content
+        
+        // Add content as a text node if provided
+        if let content = content, !content.isEmpty {
+            self.children.append(XMLText(text: content))
+        }
     }
     
     /// Creates a deep copy of this element
@@ -105,12 +182,45 @@ public final class XMLElement: XMLNode, Hashable {
         return self
     }
     
-    /// Sets the content of this element
-    /// - Parameter content: The text content to set
-    /// - Returns: Self for method chaining
+    /// Sets the text content of this element.
+    ///
+    /// This method updates the text content of the element by:
+    /// 1. Removing any existing text nodes from the children collection
+    /// 2. Setting the `content` property
+    /// 3. Adding a new ``XMLText`` node as the first child if content is provided
+    ///
+    /// - Parameter content: The text content to set. Pass `nil` to remove all text content.
+    /// - Returns: Self for method chaining.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let element = XML.element(name: "title")
+    /// element.setContent("The Swift Programming Language")
+    /// print(element.xmlString) // Outputs: <title>The Swift Programming Language</title>
+    ///
+    /// // Remove content
+    /// element.setContent(nil)
+    /// print(element.xmlString) // Outputs: <title />
+    /// ```
+    ///
+    /// ## Notes
+    ///
+    /// - This method preserves non-text child nodes like elements and comments
+    /// - Text nodes are inserted as the first child, so they appear before other children
+    /// - If you need more control over mixed content, consider using `addChild` with ``XMLText`` directly
     @discardableResult
     public func setContent(_ content: String?) -> Self {
         self.content = content
+        
+        // Replace any existing text nodes with the new content
+        let nonTextChildren = children.filter { !($0 is XMLText) }
+        children = nonTextChildren
+        
+        if let content = content, !content.isEmpty {
+            children.insert(XMLText(text: content), at: 0)
+        }
+        
         return self
     }
     
@@ -231,9 +341,44 @@ public final class XMLElement: XMLNode, Hashable {
     
     // MARK: - Querying
     
-    /// Queries for elements using a simplified XPath-like syntax
-    /// - Parameter query: The query string
-    /// - Returns: Array of matching elements
+    /// Queries for elements using a simplified XPath-like syntax.
+    ///
+    /// This method allows you to find elements within the XML tree using a concise query language
+    /// similar to XPath. The query engine supports navigating by element name, filtering by
+    /// attributes, and using various special selectors.
+    ///
+    /// - Parameter queryString: The query string specifying which elements to find.
+    /// - Returns: An array of all matching ``XMLElement`` instances.
+    ///
+    /// ## Supported Query Syntax
+    ///
+    /// - **Element name**: `book` (find all child elements named "book")
+    /// - **Path navigation**: `book/title` (find all "title" elements that are children of "book" elements)
+    /// - **Attribute filter**: `book[@category='fiction']` (find books with category attribute equal to "fiction")
+    /// - **Wildcard**: `*/title` (find all "title" elements regardless of parent name)
+    /// - **Index**: `book[1]` (find the first "book" element, using 1-based indexing)
+    /// - **Parent**: `title/..` (find the parent of the "title" element)
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let library = document.root
+    /// 
+    /// // Find all books
+    /// let books = library.query("book")
+    /// 
+    /// // Find books in the fiction category
+    /// let fictionBooks = library.query("book[@category='fiction']")
+    /// 
+    /// // Find all titles of books
+    /// let bookTitles = library.query("book/title")
+    /// 
+    /// // Find the title of the first book
+    /// let firstBookTitle = library.query("book[1]/title").first
+    /// ```
+    ///
+    /// > Note: This is a simplified XPath-like implementation. For more complex queries,
+    /// > you may need to chain multiple query calls or use Swift filtering.
     public func query(_ queryString: String) -> [XMLElement] {
         return XMLQuery.execute(query: queryString, on: self)
     }

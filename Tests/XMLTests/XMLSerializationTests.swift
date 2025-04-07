@@ -205,4 +205,43 @@ struct XMLSerializationTests {
         // Clean up
         try FileManager.default.removeItem(at: tempFileURL)
     }
+    
+    func testPrettyFormatting() async throws {
+        // Create a complex document
+        let document = XMLDocument(root: XMLElement(name: "root"))
+        let element1 = XMLElement(name: "element1", attributes: ["id": "1"])
+        let child1 = XMLElement(name: "child", content: "Child 1 Content")
+        let child2 = XMLElement(name: "child", content: "Child 2 Content")
+        
+        document.root.addChild(element1)
+        element1.addChild(child1)
+        element1.addChild(child2)
+        document.root.addChild(XMLComment(text: "This is a comment"))
+        document.root.addChild(XMLElement(name: "element2", attributes: ["id": "2"]))
+        
+        // Get the standard XML string
+        let standardXml = document.xmlString
+        
+        // The standard XML should not have line breaks or indentation between nested elements
+        #expect(!standardXml.contains("\n    <child"))
+        
+        // Get the pretty-formatted XML string
+        let prettyXml = document.xmlStringFormatted(pretty: true)
+        
+        // The pretty-formatted XML should have indentation and line breaks
+        #expect(prettyXml.contains("\n    <element1"))
+        #expect(prettyXml.contains("\n        <child"))
+        #expect(prettyXml.count > standardXml.count)
+        
+        // Verify that the indentation is correct
+        let lines = prettyXml.split(separator: "\n")
+        for line in lines {
+            if line.contains("<element1") {
+                #expect(line.hasPrefix("    "))
+            }
+            if line.contains("<child") && !line.contains("</child") {
+                #expect(line.hasPrefix("        "))
+            }
+        }
+    }
 }

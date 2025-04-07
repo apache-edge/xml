@@ -1,4 +1,8 @@
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// Represents an XML processing instruction
 public final class XMLProcessingInstruction: XMLNode {

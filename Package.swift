@@ -16,12 +16,18 @@ let package = Package(
         .library(
             name: "XML",
             targets: ["XML"]),
+        .executable(
+            name: "XMLExample",
+            targets: ["XMLExample"]),
     ],
     dependencies: [],
     targets: [
         .target(
             name: "XML",
             dependencies: []),
+        .executableTarget(
+            name: "XMLExample",
+            dependencies: ["XML"]),
         .testTarget(
             name: "XMLTests",
             dependencies: ["XML"]),
