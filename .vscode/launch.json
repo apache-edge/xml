@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:xml}",
+            "name": "Debug XMLExample",
+            "program": "${workspaceFolder:xml}/.build/debug/XMLExample",
+            "preLaunchTask": "swift: Build Debug XMLExample"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:xml}",
+            "name": "Release XMLExample",
+            "program": "${workspaceFolder:xml}/.build/release/XMLExample",
+            "preLaunchTask": "swift: Build Release XMLExample"
+        }
+    ]
+}

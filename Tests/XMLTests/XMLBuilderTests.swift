@@ -3,7 +3,7 @@ import Testing
 
 struct XMLBuilderTests {
     
-    func testBasicBuilding() async throws {
+    @Test func testBasicBuilding() async throws {
         // Build a simple XML document
         let builder = XML.build(root: "root")
         let document = builder.xmlDocument
@@ -12,7 +12,7 @@ struct XMLBuilderTests {
         #expect(document.xmlString == "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root />")
     }
     
-    func testBuildWithAttributes() async throws {
+    @Test func testBuildWithAttributes() async throws {
         // Build a document with root attributes
         let builder = XML.build(root: "root", attributes: ["id": "123", "name": "test"])
         let document = builder.xmlDocument
@@ -22,7 +22,7 @@ struct XMLBuilderTests {
         #expect(document.root.attributes["name"] == "test")
     }
     
-    func testBuildWithChildren() async throws {
+    @Test func testBuildWithChildren() async throws {
         // Build a document with child elements
         let builder = XML.build(root: "root")
             .element(name: "child", attributes: ["id": "1"], content: "First")
@@ -46,7 +46,7 @@ struct XMLBuilderTests {
         #expect(secondChild.textContent == "Second")
     }
     
-    func testBuildWithNestedChildren() async throws {
+    @Test func testBuildWithNestedChildren() async throws {
         // Build a document with nested elements
         let builder = XML.build(root: "root")
             .element(name: "parent")
@@ -68,7 +68,7 @@ struct XMLBuilderTests {
         #expect(child.textContent == "Child Content")
     }
     
-    func testBuildWithClosures() async throws {
+    @Test func testBuildWithClosures() async throws {
         // Build using closures
         let builder = XMLBuilder(rootName: "library")
         
@@ -108,7 +108,7 @@ struct XMLBuilderTests {
         #expect(title.textContent == "The Hitchhiker's Guide to the Galaxy")
     }
     
-    func testBuildWithComments() async throws {
+    @Test func testBuildWithComments() async throws {
         // Build with comments
         let builder = XML.build(root: "root")
             .documentComment("Root comment")
@@ -130,7 +130,7 @@ struct XMLBuilderTests {
         #expect(comment.text == "Element comment")
     }
     
-    func testBuildWithCData() async throws {
+    @Test func testBuildWithCData() async throws {
         // Build with CDATA
         let builder = XML.build(root: "root")
             .element(name: "element")
@@ -147,7 +147,7 @@ struct XMLBuilderTests {
         #expect(cdata.text == "<greeting>Hello</greeting>")
     }
     
-    func testBuildWithProcessingInstructions() async throws {
+    @Test func testBuildWithProcessingInstructions() async throws {
         // Build with processing instructions
         let builder = XML.build(root: "root")
             .processingInstruction(target: "xml-stylesheet", data: "type=\"text/xsl\" href=\"style.xsl\"")
@@ -170,7 +170,7 @@ struct XMLBuilderTests {
         #expect(pi.data == "echo \"Hello World\"; ")
     }
     
-    func testBuildLibraryCatalog() async throws {
+    @Test func testBuildLibraryCatalog() async throws {
         // Test building a more complex document
         let builder = XML.build(root: "library", attributes: ["name": "Public Library"])
             .documentComment("Library catalog")

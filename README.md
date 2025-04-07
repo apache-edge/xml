@@ -100,6 +100,46 @@ let updatedXML = document.xmlString
 let prettyXML = document.xmlStringFormatted(pretty: true)
 ```
 
+## Design Decisions
+
+### Classes vs Structs vs NonCopyable Types
+
+This library uses classes for XML nodes rather than structs or Swift's newer NonCopyable types. This decision was made for several important reasons:
+
+#### Why Classes?
+
+1. **Tree Structure Representation**: XML is inherently a tree structure with bidirectional references (children know their parents and vice versa). Reference semantics provided by classes make these relationships easier to maintain.
+
+2. **Node Identity**: In XML processing, node identity is crucial when querying or modifying specific nodes. Classes provide natural identity semantics where two variables can reference the same underlying node.
+
+3. **Mutable State**: XML documents are frequently modified after creation (adding children, changing attributes, etc.). Classes allow multiple references to the same node to see changes consistently.
+
+4. **Performance Considerations**: For large XML documents, copying entire trees (as would happen with structs) would be inefficient in both memory usage and processing time.
+
+5. **API Consistency**: The parent-child relationship is more intuitive with reference semantics, as modifications to a node are visible to all code holding a reference to that node.
+
+#### Why Not Structs?
+
+While Swift structs offer many advantages for other use cases, they present challenges for XML representation:
+
+1. **Copy Overhead**: Structs would require copying entire subtrees when passing XML nodes around, which would be expensive for large documents.
+
+2. **Parent-Child Complexity**: Maintaining bidirectional parent-child relationships is difficult with value semantics, requiring complex reference management.
+
+3. **Unexpected Behavior**: Value semantics could lead to surprising behavior where changes to a "copy" of a node wouldn't affect the original document.
+
+#### Why Not NonCopyable Types?
+
+Swift's newer NonCopyable types offer interesting ownership semantics but aren't ideal for this library:
+
+1. **API Flexibility**: NonCopyable types would impose significant constraints on how users can work with XML nodes.
+
+2. **Compatibility**: Using NonCopyable types would require Swift 5.9+, potentially limiting adoption.
+
+3. **Familiar Patterns**: Classes provide well-understood semantics that align with how developers typically expect to work with tree structures.
+
+This design choice prioritizes intuitive API design, performance for large documents, and alignment with the natural structure of XML data.
+
 ## Documentation
 
 The library includes comprehensive DocC documentation with:

@@ -31,7 +31,7 @@ struct XMLNavigationTests {
     </library>
     """
     
-    func testChildElements() async throws {
+    @Test func testChildElements() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get child elements
@@ -43,7 +43,7 @@ struct XMLNavigationTests {
         #expect(children[3].name == "magazine")
     }
     
-    func testFirstChild() async throws {
+    @Test func testFirstChild() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get first book
@@ -63,7 +63,7 @@ struct XMLNavigationTests {
         #expect(nonExistent == nil)
     }
     
-    func testChildrenWhere() async throws {
+    @Test func testChildrenWhere() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get all books
@@ -83,7 +83,7 @@ struct XMLNavigationTests {
         #expect(bestsellers.count == 2)
     }
     
-    func testDescendants() async throws {
+    @Test func testDescendants() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get all titles
@@ -103,7 +103,7 @@ struct XMLNavigationTests {
         #expect(hawkingElements.count == 1)
     }
     
-    func testNodes() async throws {
+    @Test func testNodes() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get library and all books
@@ -116,7 +116,7 @@ struct XMLNavigationTests {
         #expect(libraryAndBooks[0].name == "library")
     }
     
-    func testParentChild() async throws {
+    @Test func testParentChild() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Find a specific title
@@ -135,7 +135,7 @@ struct XMLNavigationTests {
         #expect(book?.childElements.contains { $0 === title } == true)
     }
     
-    func testDepth() async throws {
+    @Test func testDepth() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Root has depth 0
@@ -150,7 +150,7 @@ struct XMLNavigationTests {
         #expect(title.depth == 2)
     }
     
-    func testAddChild() async throws {
+    @Test func testAddChild() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Add a new book
@@ -172,7 +172,7 @@ struct XMLNavigationTests {
         #expect(addedBook.parent === document.root)
     }
     
-    func testRemoveChild() async throws {
+    @Test func testRemoveChild() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Remove the magazine
@@ -184,7 +184,7 @@ struct XMLNavigationTests {
         #expect(document.root.children(where: { $0.name == "magazine" }).isEmpty)
     }
     
-    func testRemoveChildAtIndex() async throws {
+    @Test func testRemoveChildAtIndex() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Remove the first book
@@ -199,7 +199,7 @@ struct XMLNavigationTests {
         #expect(title == "The Lord of the Rings")
     }
     
-    func testRemoveAllChildren() async throws {
+    @Test func testRemoveAllChildren() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Remove all children
@@ -210,7 +210,7 @@ struct XMLNavigationTests {
         #expect(document.root.children.isEmpty)
     }
     
-    func testSetContent() async throws {
+    @Test func testSetContent() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get the first title
@@ -223,7 +223,7 @@ struct XMLNavigationTests {
         #expect(title.textNodes[0].text == "New Title")
     }
     
-    func testSetAttribute() async throws {
+    @Test func testSetAttribute() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get the first book
@@ -238,7 +238,7 @@ struct XMLNavigationTests {
         #expect(book.attributes["new-attribute"] == "value")
     }
     
-    func testRemoveAttribute() async throws {
+    @Test func testRemoveAttribute() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get the first book
@@ -251,7 +251,7 @@ struct XMLNavigationTests {
         #expect(book.attributes["bestseller"] == nil)
     }
     
-    func testSetAttributes() async throws {
+    @Test func testSetAttributes() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get the first book
@@ -268,7 +268,7 @@ struct XMLNavigationTests {
         #expect(book.attributes["new-attribute2"] == "value2")
     }
     
-    func testRename() async throws {
+    @Test func testRename() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get the magazine
@@ -283,7 +283,7 @@ struct XMLNavigationTests {
         #expect(document.root.children(where: { $0.name == "journal" }).count == 1)
     }
     
-    func testCopy() async throws {
+    @Test func testCopy() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Get a book
@@ -313,7 +313,7 @@ struct XMLNavigationTests {
         #expect(book.attributes["modified"] == nil)
     }
     
-    func testDocumentCopy() async throws {
+    @Test func testDocumentCopy() async throws {
         let document = try XML.parse(string: xmlString)
         
         // Create a copy
