@@ -51,6 +51,10 @@ Then add the dependency to your target:
 
 ## Quick Start
 
+Here are examples demonstrating the main features of the XML library:
+
+### 1. Parsing XML
+
 ```swift
 import XML
 
@@ -70,22 +74,113 @@ let xmlString = """
 </library>
 """
 
-// Parse the XML
-let document = try XMLDocument.parse(string: xmlString)
+// Parse the XML string
+let document = try XML.parse(string: xmlString)
 
-// Query elements
+// Parse from a file
+let fileURL = URL(fileURLWithPath: "/path/to/file.xml")
+let documentFromFile = try XML.parse(contentsOf: fileURL)
+
+// Access the root element
+let rootElement = document.root
+print("Root element name: \(rootElement.name)") // "library"
+```
+
+### 2. Querying and Traversing
+
+```swift
+// Query elements using XPath-like expressions
 let books = document.root.query("book")
+print("Number of books: \(books.count)") // 2
+
+// Query with attribute filters
 let fictionBooks = document.root.query("book[@category='fiction']")
+let nonFictionBooks = document.root.query("book[@category='non-fiction']")
 
-// Traversal
+// Query with multiple levels
+let titles = document.root.query("book/title")
+let fictionTitles = document.root.query("book[@category='fiction']/title")
+
+// Get element content
+if let firstTitle = titles.first {
+    print("First title: \(firstTitle.content ?? "")") // "The Hitchhiker's Guide to the Galaxy"
+}
+
+// Traversal methods
+// Get first child matching a condition
 let firstBook = document.root.firstChild(where: { $0.name == "book" })
+
+// Get all descendants matching a condition
 let allAuthors = document.root.descendants(where: { $0.name == "author" })
+allAuthors.forEach { author in
+    print("Author: \(author.content ?? "")")
+}
 
-// Get attribute or content
-let category = firstBook?.attributes["category"]
-let title = firstBook?.firstChild(where: { $0.name == "title" })?.content
+// Navigate parent-child relationships
+if let firstBook = books.first {
+    let parent = firstBook.parent // The library element
+    let children = firstBook.children // title, author, year elements
+    let childElements = firstBook.childElements // Same as children but only XMLElement types
+}
+```
 
-// Mutation
+### 3. Building XML from Scratch
+
+```swift
+// Create a new document with a root element
+let catalog = XMLDocument(root: XMLElement(name: "catalog"))
+
+// Method 1: Add elements individually
+let product = XMLElement(name: "product")
+product.attributes["id"] = "1001"
+product.addChild(XMLElement(name: "name", content: "Coffee Maker"))
+product.addChild(XMLElement(name: "price", content: "49.99"))
+product.addChild(XMLElement(name: "available", content: "true"))
+
+catalog.root.addChild(product)
+
+// Method 2: Use the fluent builder API
+let anotherProduct = XMLElement(name: "product")
+    .setAttribute("id", value: "1002")
+    .addChild(XMLElement(name: "name", content: "Toaster"))
+    .addChild(XMLElement(name: "price", content: "29.99"))
+    .addChild(XMLElement(name: "available", content: "true"))
+
+catalog.root.addChild(anotherProduct)
+
+// Method 3: Use the closure-based builder
+let thirdProduct = XMLElement.build("product") { product in
+    product.setAttribute("id", value: "1003")
+    
+    product.addChild(XMLElement.build("name") { name in
+        name.setContent("Blender")
+    })
+    
+    product.addChild(XMLElement.build("price") { price in
+        price.setContent("39.99")
+    })
+    
+    product.addChild(XMLElement(name: "available", content: "false"))
+}
+
+catalog.root.addChild(thirdProduct)
+
+// Generate XML string (compact format)
+let xmlOutput = catalog.xmlString
+print(xmlOutput)
+
+// Generate XML with pretty formatting (indented)
+let prettyXML = catalog.xmlStringFormatted(pretty: true)
+print(prettyXML)
+```
+
+### 4. Manipulating XML
+
+```swift
+// Starting with our library document from the parsing example
+let document = try XML.parse(string: xmlString)
+
+// 1. Adding new elements
 let newBook = XMLElement(name: "book")
 newBook.attributes["category"] = "science"
 newBook.addChild(XMLElement(name: "title", content: "Cosmos"))
@@ -94,12 +189,80 @@ newBook.addChild(XMLElement(name: "year", content: "1980"))
 
 document.root.addChild(newBook)
 
-// Convert back to string (compact format)
-let updatedXML = document.xmlString
+// 2. Updating elements
+let books = document.root.query("book")
+if let firstBook = books.first {
+    // Update an attribute
+    firstBook.setAttribute("category", value: "science-fiction")
+    
+    // Update content
+    if let yearElement = firstBook.firstChild(where: { $0.name == "year" }) {
+        yearElement.setContent("1979 (First Edition)")
+    }
+    
+    // Add a new child element
+    firstBook.addChild(XMLElement(name: "publisher", content: "Pan Books"))
+}
 
-// Convert with pretty formatting (indented)
-let prettyXML = document.xmlStringFormatted(pretty: true)
+// 3. Removing elements
+if books.count > 2 {
+    // Remove the third book
+    if let thirdBook = books[safe: 2] {
+        thirdBook.removeFromParent()
+    }
+}
+
+// Remove all books with a specific category
+let scienceBooks = document.root.query("book[@category='science']")
+scienceBooks.forEach { book in
+    book.removeFromParent()
+}
+
+// Remove specific child elements
+if let firstBook = books.first {
+    // Remove all publisher elements from the first book
+    firstBook.children.filter { $0.name == "publisher" }.forEach { $0.removeFromParent() }
+    
+    // Or alternatively:
+    firstBook.removeChildren(where: { $0.name == "publisher" })
+}
+
+// 4. Renaming elements
+if let firstBook = books.first {
+    firstBook.name = "novel"
+}
+
+// Generate the updated XML
+let updatedXML = document.xmlStringFormatted(pretty: true)
+print(updatedXML)
 ```
+
+## Running the Examples
+
+This repository includes a complete example application that demonstrates the key features of the XML library.
+
+### Example File
+
+The [Sources/XMLExample/main.swift](https://github.com/apache-edge/xml/blob/main/Sources/XMLExample/main.swift) file contains three practical examples:
+
+1. **Parsing XML** - Shows how to parse an XML string and extract data using queries
+2. **Creating XML** - Demonstrates building a new XML document using the fluent builder API
+3. **Modifying XML** - Illustrates how to update an existing XML document by adding and modifying elements
+
+### Running the Example
+
+After cloning the repository, you can run the example application with:
+
+```bash
+# Clone the repository
+git clone https://github.com/apache-edge/xml.git
+cd xml
+
+# Run the example
+swift run XMLExample
+```
+
+The example will output the results of all three demonstrations, showing the XML library in action.
 
 ## Design Decisions
 
