@@ -4,6 +4,7 @@
 [![Swift 6.0](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
 [![SPM Compatible](https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat)](https://swift.org/package-manager)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/apache-edge/xml/blob/main/LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.0.1-brightgreen.svg)](https://github.com/apache-edge/xml/releases/tag/0.0.1)
 
 **Platforms:**
 [![macOS](https://img.shields.io/badge/macOS-supported-brightgreen.svg)](https://swift.org)
@@ -35,7 +36,7 @@ Add the following to your `Package.swift` file:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/apache-edge/xml.git", from: "1.0.0")
+    .package(url: "https://github.com/apache-edge/xml.git", from: "0.0.1")
 ]
 ```
 
